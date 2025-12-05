@@ -1,0 +1,1616 @@
+=================================================================
+    GNC PUPPET SUNDAY ATTENDANCE MANAGEMENT SYSTEM
+    PROJECT CHAT HISTORY & DOCUMENTATION
+=================================================================
+
+PROJECT GOAL:
+Build a comprehensive Sunday Attendance Management System for GNC Puppet 
+(DBF) sevarthis organization featuring:
+- Role-based access (Admin/Normal User)
+- Attendance tracking with multiple status types
+- Story and character management with exact names
+- Report generation with PDF/Excel/Image exports
+- Notifications with poll system
+- Admin poll results viewing and export
+- Practice links management
+- User reports system
+- Bulk member import/export via Excel
+- Custom authentication (email/mobile + MHT ID validation)
+- Material Design 3 principles
+
+AUTHENTICATION:
+- Custom login system (NOT Replit OAuth)
+- Email or Mobile + MHT ID combination
+- Auto-user creation for custom login members
+- Members table (custom login) vs Users table (Replit OAuth)
+- Custom login users use memberId in session; OAuth users use userId
+
+=================================================================
+LOCAL SETUP GUIDE - HOW TO RUN ON YOUR PC
+=================================================================
+
+PREREQUISITES:
+Before starting, you need to install these on your computer:
+
+1. Node.js (version 16 or higher)
+   - Download from: https://nodejs.org/
+   - Includes npm (Node Package Manager)
+   - Verify installation: node --version
+
+2. PostgreSQL (Database)
+   - Download from: https://www.postgresql.org/download/
+   - Choose your operating system (Windows/Mac/Linux)
+   - During installation, remember the password you set for 'postgres' user
+   - Verify installation: psql --version
+
+3. Git (Version Control - Optional but recommended)
+   - Download from: https://git-scm.com/
+   - Used to clone the repository
+   - Verify installation: git --version
+
+STEP-BY-STEP INSTALLATION:
+
+STEP 1: Get the Project Code
+Option A - Using Git (Recommended):
+  $ git clone <your-repository-url>
+  $ cd gnc-puppet-attendance
+
+Option B - Using ZIP:
+  - Download the ZIP file from your repository
+  - Extract it to a folder on your computer
+  - Open terminal/command prompt in that folder
+
+STEP 2: Install Project Dependencies
+  $ npm install
+  (This may take 2-5 minutes)
+
+STEP 3: Create Environment Variables File
+  - In the project root folder, create a file named: .env.local
+  - Copy and paste the following content:
+  
+    DATABASE_URL=postgres://postgres:your-password@localhost:5432/gnc_puppet
+    SESSION_SECRET=your-secret-key-change-this-to-something-random
+
+  - Replace 'your-password' with the PostgreSQL password you set during installation
+  - Replace 'your-secret-key-change-this-to-something-random' with any random string
+
+STEP 4: Create the Database
+  Open terminal/command prompt and run:
+  
+  $ createdb gnc_puppet
+  
+  Or if that doesn't work:
+  
+  $ psql -U postgres -c "CREATE DATABASE gnc_puppet;"
+  (You'll be prompted for PostgreSQL password)
+
+STEP 5: Run Database Migrations
+  $ npm run db:push
+
+STEP 6: Start the Application
+  $ npm run dev
+  
+  Wait for the output:
+  "✓ Sample admin already exists"
+  "11:50:04 AM [express] serving on port 5000"
+
+STEP 7: Open in Browser
+  - Open your web browser
+  - Go to: http://localhost:5000
+  - You should see the GNC Puppet login page
+
+DEFAULT ADMIN LOGIN:
+  Email: admin@gnc.org
+  MHT ID: MHT001
+  (Mobile: 9876543210)
+
+STOPPING THE APPLICATION:
+  - In terminal, press: Ctrl + C
+
+RESTARTING THE APPLICATION:
+  - Make sure PostgreSQL is running
+  - Run: npm run dev
+  - Go to: http://localhost:5000
+
+TROUBLESHOOTING:
+
+Problem 1: "npm: command not found"
+  Solution: Node.js is not installed. Download and install from https://nodejs.org/
+
+Problem 2: "createdb: command not found"
+  Solution: PostgreSQL is not installed or not in PATH
+  Alternative: Use: psql -U postgres -c "CREATE DATABASE gnc_puppet;"
+
+Problem 3: "password authentication failed for user 'postgres'"
+  Solution: Check your .env.local DATABASE_URL password matches PostgreSQL password
+  Verify: psql -U postgres (Enter your password when prompted)
+
+Problem 4: "Cannot find module 'express'"
+  Solution: Run: npm install
+
+Problem 5: "EADDRINUSE: address already in use :::5000"
+  Solution: Port 5000 is already in use
+  Option A: Close other applications using port 5000
+  Option B: Change port in package.json or vite.config.ts
+  Option C: Run: npm run dev -- --port 3000
+
+Problem 6: "Database does not exist"
+  Solution: Run these commands in order:
+  $ createdb gnc_puppet
+  $ npm run db:push
+
+Problem 7: Connection refused to database
+  Solution: Make sure PostgreSQL is running
+  - Windows: Start PostgreSQL from Services
+  - Mac: Start PostgreSQL from Applications
+  - Linux: sudo systemctl start postgresql
+
+ACCESSING THE APP:
+
+Admin Dashboard:
+  URL: http://localhost:5000/
+  Shows: Statistics, recent attendance, active notifications
+  Only accessible after login
+
+Main Features Available:
+  - Attendance: /attendance
+  - Members (Admin): /members
+  - Stories (Admin): /stories
+  - Shows (Admin): /shows
+  - Notifications (Admin): /notifications
+  - Poll Results (Admin): /polls/results
+  - Practice Links (Admin): /practice-links
+  - Reports (Admin): /reports
+  - User Reports: /user-reports
+  - Profile: /profile
+  - Announcements: /announcements
+
+DEVELOPMENT TIPS:
+
+1. Hot Reload:
+   The app automatically reloads when you make code changes. Just save the file
+   and refresh the browser.
+
+2. Database Reset:
+   To start fresh with a clean database:
+   $ dropdb gnc_puppet
+   $ createdb gnc_puppet
+   $ npm run db:push
+   $ npm run dev
+
+3. View Console Logs:
+   - Backend logs appear in the terminal
+   - Frontend logs appear in browser Developer Tools (F12)
+
+4. Database Inspection:
+   View data directly with: psql gnc_puppet
+   Common commands:
+   - \dt (list all tables)
+   - SELECT * FROM members; (view members)
+   - \q (exit)
+
+5. Sample Data:
+   Admin user and sample stories auto-create on first run
+   You can modify seed data in: server/routes.ts → seedSampleData()
+
+DEPLOYING TO PRODUCTION:
+
+When ready to go live:
+1. Choose a hosting provider (Heroku, Railway, Render, etc.)
+2. Set up PostgreSQL database on the provider
+3. Set environment variables (DATABASE_URL, SESSION_SECRET)
+4. Deploy the repository
+5. Run: npm run build && npm start
+
+For local testing before deployment, ensure everything works:
+$ npm run dev
+$ npm run build
+
+=================================================================
+COMPLETE DETAILED GUIDE: SETUP, SHARING & USAGE
+=================================================================
+
+SECTION 1: DETAILED LOCAL PC SETUP (Step-by-Step with Screenshots)
+=================================================================
+
+WHAT IS THIS PROJECT?
+The GNC Puppet Sunday Attendance Management System is a web application that:
+- Tracks attendance for puppet show performances
+- Manages member information
+- Conducts polls and surveys
+- Generates reports in multiple formats
+- Allows team collaboration
+
+BEFORE YOU START - WHAT YOU NEED:
+1. A computer (Windows, Mac, or Linux)
+2. Internet connection (to download software)
+3. About 30 minutes of free time
+4. Basic comfort with opening terminal/command prompt
+
+---
+
+STEP 1: INSTALL NODE.JS
+
+What is Node.js?
+- It's a program that runs JavaScript code on your computer
+- Required for this project to work
+- Includes npm (tool to manage project dependencies)
+
+How to Install:
+1. Go to: https://nodejs.org/
+2. You'll see two buttons: "LTS" and "Current"
+3. Click "LTS" (more stable) - currently version 20.x
+4. Download the installer for your operating system
+   - Windows: Download the .msi file
+   - Mac: Download the .pkg file
+   - Linux: Follow Linux instructions
+
+5. After downloading:
+   - Windows: Double-click the .msi file and follow wizard
+   - Mac: Double-click the .pkg file and follow wizard
+   - Linux: Run the installation command shown on website
+
+6. Restart your computer after installation
+
+How to Verify Installation:
+- Windows: Open Command Prompt (search "cmd" in Start menu)
+- Mac: Open Terminal (Applications > Utilities > Terminal)
+- Linux: Open Terminal
+
+Type and press Enter:
+  node --version
+  npm --version
+
+You should see version numbers like: v20.10.0
+
+---
+
+STEP 2: INSTALL POSTGRESQL (Database)
+
+What is PostgreSQL?
+- It's a database system that stores all app data
+- Stores member info, attendance records, polls, stories, etc.
+- Runs on your computer
+
+How to Install:
+1. Go to: https://www.postgresql.org/download/
+2. Choose your operating system
+3. Follow the download link and download the installer
+
+Installation Steps:
+
+Windows:
+1. Double-click the downloaded .exe file
+2. Choose installation language: English
+3. Click "Next" through the wizard
+4. Accept the default installation location
+5. When asked for "Setup the server locally?": YES
+6. Port number: Keep default (5432)
+7. Create a password for "postgres" user - REMEMBER THIS PASSWORD
+8. You'll need this password later!
+9. Click Install and wait (may take 5-10 minutes)
+
+Mac:
+1. Double-click the .dmg file
+2. Double-click PostgreSQL installer icon
+3. Follow the wizard
+4. Set password for "postgres" user - REMEMBER THIS
+5. Port: Keep default (5432)
+
+Linux:
+1. Open Terminal
+2. Run: sudo apt-get install postgresql postgresql-contrib
+3. During installation, it will create "postgres" user
+
+IMPORTANT: Remember the password you set for "postgres" user!
+We'll need it in Step 3 when setting up the project.
+
+How to Verify Installation:
+Open Terminal/Command Prompt and type:
+  psql --version
+
+You should see: psql (PostgreSQL) 15.x
+
+---
+
+STEP 3: INSTALL GIT (Optional but Recommended)
+
+What is Git?
+- Used to manage and version control code
+- Recommended for getting the project
+
+How to Install:
+1. Go to: https://git-scm.com/
+2. Click "Download for [your OS]"
+3. Install it by following the installer
+
+How to Verify Installation:
+  git --version
+
+Should show: git version 2.x.x
+
+---
+
+STEP 4: GET THE PROJECT CODE
+
+Option A: Using Git (Recommended)
+
+1. Open Terminal/Command Prompt
+2. Navigate to a folder where you want to store the project
+   Example: Desktop or Documents folder
+
+3. Run this command (replace with actual repo URL):
+   git clone https://github.com/your-org/gnc-puppet-attendance.git
+
+4. Wait for download to complete (1-5 minutes)
+
+5. Go into the project folder:
+   cd gnc-puppet-attendance
+
+Option B: Using ZIP File
+
+1. Go to the project repository on GitHub
+2. Click green "Code" button
+3. Click "Download ZIP"
+4. Extract the ZIP file to a folder on your computer
+5. Remember the folder location
+
+---
+
+STEP 5: INSTALL PROJECT DEPENDENCIES
+
+What does this do?
+- Downloads all libraries and tools the project needs
+- Takes 2-5 minutes
+
+1. Open Terminal/Command Prompt
+2. Navigate to the project folder:
+   cd /path/to/gnc-puppet-attendance
+
+3. Run:
+   npm install
+
+4. Wait for it to complete (you'll see lots of text)
+5. Should end with: "added XXX packages"
+
+---
+
+STEP 6: CREATE ENVIRONMENT CONFIGURATION FILE
+
+What is this file?
+- Stores secret settings like database password
+- Tells app how to connect to your database
+
+1. In the project folder (same level as package.json), create a file:
+   File name: .env.local
+
+2. Open this file in any text editor (Notepad, VS Code, etc.)
+
+3. Copy and paste this content:
+
+=== START COPY ===
+DATABASE_URL=postgres://postgres:your-postgres-password@localhost:5432/gnc_puppet
+SESSION_SECRET=super-secret-random-string-change-this-1234567890
+=== END COPY ===
+
+4. Replace "your-postgres-password" with the password you created in Step 2
+
+Example:
+If your PostgreSQL password is "MyPassword123", write:
+DATABASE_URL=postgres://postgres:MyPassword123@localhost:5432/gnc_puppet
+
+5. For SESSION_SECRET, just type any random string (10+ characters)
+   Example: abc123xyz456def789
+
+6. Save the file
+
+---
+
+STEP 7: CREATE THE DATABASE
+
+What does this do?
+- Creates an empty database where app will store data
+
+1. Open Terminal/Command Prompt
+2. Run this command:
+   createdb gnc_puppet
+
+3. If that doesn't work, try:
+   psql -U postgres -c "CREATE DATABASE gnc_puppet;"
+
+4. Enter your PostgreSQL password when prompted
+
+You should see no error messages.
+
+---
+
+STEP 8: SET UP DATABASE TABLES
+
+What does this do?
+- Creates all the tables (Member, Story, Attendance, Poll, etc.)
+- Runs migrations automatically
+
+1. In Terminal, make sure you're in the project folder
+2. Run:
+   npm run db:push
+
+3. You'll see output about migrations - this is normal
+4. Should complete successfully
+
+---
+
+STEP 9: START THE APPLICATION
+
+1. In Terminal, run:
+   npm run dev
+
+2. Wait 10-20 seconds
+
+3. You should see output like:
+   ✓ Sample admin already exists
+   11:50:04 AM [express] serving on port 5000
+
+4. If it hangs, that's normal - the server is running
+
+---
+
+STEP 10: OPEN IN WEB BROWSER
+
+1. Open any web browser (Chrome, Firefox, Safari, Edge)
+2. Go to: http://localhost:5000
+3. You should see the login page
+
+---
+
+STEP 11: LOGIN AND TEST
+
+1. Use these credentials:
+   Email: admin@gnc.org
+   MHT ID: MHT001
+
+2. Click Login
+3. You should see the Dashboard
+
+SUCCESS! The app is now running locally.
+
+To stop the app:
+- In Terminal, press: Ctrl + C
+
+To start again:
+- Run: npm run dev
+- Go to: http://localhost:5000
+
+---
+
+SECTION 2: HOW TO SHARE THIS PROJECT WITH YOUR TEAM
+=================================================================
+
+WHY SHARE?
+- Other team members can use the same app
+- Team can contribute to development
+- Easy backup and collaboration
+
+METHOD 1: SHARE VIA GITHUB (RECOMMENDED)
+
+What is GitHub?
+- Cloud platform for sharing code
+- Everyone can download the code from one place
+- Easy to collaborate and track changes
+
+Steps:
+
+1. Create GitHub Account (if you don't have one):
+   - Go to: https://github.com/
+   - Click "Sign up"
+   - Follow the steps
+
+2. Create a New Repository:
+   - Click "+" icon at top right
+   - Select "New repository"
+   - Name it: gnc-puppet-attendance
+   - Add description: "GNC Puppet Sunday Attendance Management System"
+   - Choose "Private" (only team sees) or "Public"
+   - Click "Create repository"
+
+3. Upload Your Code to GitHub:
+   Open Terminal in your project folder and run:
+
+   git config --global user.email "your-email@example.com"
+   git config --global user.name "Your Name"
+   git add .
+   git commit -m "Initial project setup"
+   git branch -M main
+   git remote add origin https://github.com/your-username/gnc-puppet-attendance.git
+   git push -u origin main
+
+4. Share with Team Members:
+   - Go to your GitHub repository
+   - Click "Settings" > "Collaborators"
+   - Add team member emails
+   - They'll receive invitations
+
+5. Team Members Can Download:
+   - Each team member goes to the repository
+   - Clicks green "Code" button
+   - Clicks "Copy" to copy the clone URL
+   - On their computer, runs:
+     git clone [paste the URL]
+
+---
+
+METHOD 2: SHARE VIA ZIP FILE
+
+Steps:
+
+1. On Your Computer:
+   - Right-click the project folder
+   - Select "Send to > Compressed (zipped) folder"
+   - A .zip file is created
+
+2. Share the ZIP:
+   - Email it to team members
+   - Upload to Google Drive, Dropbox, etc.
+   - Share via file transfer service
+
+3. Team Members Extract:
+   - Download the .zip file
+   - Right-click and select "Extract All"
+   - Follow Steps 5-11 of Local Setup
+
+Disadvantage: Every time you update code, you need to create new ZIP
+
+---
+
+METHOD 3: SHARED FOLDER (For Local Network)
+
+Steps:
+
+1. Create a shared folder on network drive
+2. Copy project folder to shared location
+3. Team members can access from their computers
+4. Each person runs: npm install
+5. Each person creates their own .env.local file
+
+---
+
+IMPORTANT SECURITY NOTE:
+
+NEVER share your .env.local file!
+- It contains your database password
+- Add to .gitignore before uploading to GitHub
+
+The project should already have .gitignore configured, but verify:
+- Check that .env.local is listed in .gitignore file
+
+---
+
+SECTION 3: DETAILED USAGE GUIDE FOR ALL FEATURES
+=================================================================
+
+LOGIN PAGE (First Page You See)
+
+Two Login Options:
+
+Option 1: Email Login
+- Email: admin@gnc.org
+- MHT ID: MHT001
+- Click "Login"
+
+Option 2: Mobile Login
+- Mobile: 9876543210
+- MHT ID: MHT001
+- Click "Login"
+
+After successful login, you see the Dashboard.
+
+---
+
+DASHBOARD (Admin View After Login)
+
+What You See:
+- Welcome message
+- Statistics (Total Members, Total Attendance, etc.)
+- Recent attendance entries
+- Active notifications/announcements
+- Quick action buttons
+
+Admin Buttons Available:
+- Add Story
+- Add Member
+- Create Announcement
+- Schedule Poll
+
+---
+
+FEATURE 1: MEMBER MANAGEMENT
+
+Path: Click "Members" in sidebar menu
+
+What You Can Do:
+
+View All Members:
+- See a list of all team members
+- Shows: Name, Email, Mobile, MHT ID, Role
+
+Add New Member:
+- Click "Add Member" button
+- Fill in:
+  * Name (required)
+  * Email (required)
+  * Mobile (required)
+  * MHT ID (required, unique)
+  * Role: Admin or Member
+- Click "Save"
+
+Edit Member:
+- Click on member row or "Edit" button
+- Modify any field
+- Click "Save"
+
+Delete Member:
+- Click "Delete" button
+- Confirm deletion
+- Member is removed from system
+
+Import Members from Excel:
+- Click "Import" button
+- Select .xlsx file from your computer
+- Map Excel columns to fields
+- Click "Import"
+
+Export Members to Excel:
+- Click "Export" button
+- File downloads to your computer
+- Contains all member data
+
+---
+
+FEATURE 2: STORY AND CHARACTER MANAGEMENT
+
+Path: Click "Stories" in sidebar menu
+
+What Stories Are:
+- Puppet show stories that are performed
+- Each story has characters that perform it
+- Example: "Lumpy & Pooh" story has characters Tiger, Lumpy, Pooh, etc.
+
+Viewing Stories:
+- See list of all stories with character count
+- Click on story to see all characters
+
+Adding New Story:
+
+1. Click "Add Story" button
+2. Fill in:
+   - Story Name (e.g., "My New Story")
+   - Brief Description
+3. Click "Save"
+
+Adding Characters to Story:
+
+1. Click on a story
+2. Click "Add Character"
+3. Enter character name
+4. Click "Save"
+
+The character is now linked to that story.
+
+Editing Story:
+- Click "Edit" on story card
+- Modify name and description
+- Click "Save"
+
+Deleting Story:
+- Click "Delete" on story card
+- Confirm
+- Story and all its characters are deleted
+
+---
+
+FEATURE 3: ATTENDANCE TRACKING
+
+Path: Sidebar > "Attendance"
+
+This Feature Has Two Parts:
+
+PART A: Self Attendance (All Members)
+- Members record their own attendance
+- Navigate to: Attendance > "Mark My Attendance"
+- Select date
+- Select attendance status:
+  * Present
+  * Absent
+  * Sick
+  * Leave
+- Select story and character (if present)
+- Click "Submit"
+
+PART B: Admin Recording (Admin Only)
+- Admin records attendance for others
+- Navigate to: Attendance > "Admin Recording"
+- Select member
+- Select date
+- Mark attendance status
+- Click "Save"
+
+PART C: View All Attendance (Admin Only)
+- Navigate to: Attendance > "View All"
+- See attendance records for all members
+- Filter by date range, member, or status
+- Export to Excel
+
+---
+
+FEATURE 4: NOTIFICATIONS & ANNOUNCEMENTS
+
+Path: Sidebar > "Notifications" (Admin) or "Announcements" (User)
+
+Admin Creating Announcement:
+
+1. Click "Create Announcement"
+2. Fill in:
+   - Title (e.g., "Important Update")
+   - Message/Content
+   - Select who sees it (All Members, Admins, Specific Group)
+   - Set expiry date (when it expires)
+3. Click "Post"
+
+Members Viewing Announcements:
+
+1. Click "Announcements" in sidebar
+2. See all active announcements
+3. Click on announcement to read full content
+4. Expired announcements automatically hidden
+
+---
+
+FEATURE 5: POLLS AND VOTING
+
+Path: "Announcements" page to vote, "Poll Results" for admin
+
+Admin Creating Poll:
+
+1. Click "Create Poll"
+2. Fill in:
+   - Poll Question (e.g., "Which story should we perform next?")
+   - Poll Options (add multiple choices)
+   - Set expiry date and time
+3. Click "Create"
+
+Members Voting:
+
+1. Go to "Announcements" page
+2. Find active poll section
+3. Click on your choice
+4. Submit vote
+5. You see confirmation
+
+Admin Viewing Results:
+
+1. Click "Poll Results" in sidebar
+2. See all polls (active and expired)
+3. For each poll:
+   - See total votes
+   - See who voted what
+   - See timestamps of votes
+4. Export results as PDF/Excel
+
+---
+
+FEATURE 6: PRACTICE LINKS
+
+Path: Sidebar > "Practice Links" (Admin) or accessible to all users
+
+Admin Adding Practice Link:
+
+1. Click "Add Practice Link"
+2. Fill in:
+   - Link Name (e.g., "Lumpy & Pooh Act 1")
+   - Link URL (YouTube, Google Drive link, etc.)
+   - Description
+   - Assign to story/character
+3. Click "Save"
+
+Members Accessing Practice Links:
+
+1. See "Practice Links" section
+2. Click link to open video/resource
+3. Link opens in new tab
+
+Admin Managing Links:
+
+1. Edit link details
+2. Delete old/unused links
+3. View statistics (how many clicked)
+
+---
+
+FEATURE 7: USER REPORTS
+
+Path: "User Reports" (for submitting), "Reports" (for admin viewing)
+
+Members Submitting Reports:
+
+1. Click "User Reports"
+2. Click "Submit New Report"
+3. Fill in:
+   - Report Title (e.g., "Performance Issue")
+   - Description (detailed explanation)
+   - Urgency (Low, Medium, High)
+   - Attachment (optional, add image or file)
+4. Click "Submit"
+
+Admin Viewing Reports:
+
+1. Click "Reports" in sidebar
+2. See all submitted reports
+3. View report details by clicking on report
+4. Mark as read/resolved
+5. Add notes/reply
+6. Export reports as PDF/Excel
+
+Reports Statistics:
+
+1. In "Reports" page
+2. See dashboard showing:
+   - Total reports submitted
+   - Reports by status (pending, resolved, etc.)
+   - Reports by urgency level
+   - Report trends over time
+
+---
+
+FEATURE 8: USER PROFILE
+
+Path: Sidebar > "Profile"
+
+What You Can Do:
+
+View Your Profile:
+- See your member information
+- Email, Mobile, MHT ID, Role
+
+Edit Your Profile:
+- Click "Edit Profile"
+- Modify:
+  * Name
+  * Email
+  * Mobile
+  * Profile picture (optional)
+- Click "Save"
+
+View Your Attendance History:
+- See all your attendance records
+- Sorted by date (newest first)
+- Filter by date range or status
+
+---
+
+FEATURE 9: SHOWS/PERFORMANCES
+
+Path: Sidebar > "Shows" (Admin) or view upcoming shows
+
+Admin Creating Show:
+
+1. Click "Create Show"
+2. Fill in:
+   - Show Title (e.g., "Sunday Performance - Nov 28")
+   - Date and Time
+   - Location
+   - Select story and characters
+   - Notes/description
+3. Click "Save"
+
+Viewing Shows:
+
+1. All members see upcoming shows
+2. See date, time, location
+3. See which story and characters
+4. Admin can see who's assigned
+
+---
+
+SECTION 4: COMMON WORKFLOWS & SCENARIOS
+=================================================================
+
+SCENARIO 1: ORGANIZING A SHOW
+
+Step 1: Add Members
+- Go to Members
+- Click "Add Member" for each team member
+- Enter their details and click "Save"
+
+Step 2: Create Story and Characters
+- Go to Stories
+- Click "Add Story"
+- Enter story details
+- Add characters that will be in this story
+
+Step 3: Schedule Show
+- Go to Shows
+- Click "Create Show"
+- Select date, time, location
+- Choose story and characters
+- Click "Save"
+
+Step 4: Send Announcement
+- Go to Notifications
+- Create announcement with show details
+- All members see it
+
+Step 5: Track Attendance
+- After show, go to Attendance
+- Record who attended
+- Update their attendance status
+
+Step 6: View Reports
+- Go to Reports to see member reports
+- View statistics
+
+---
+
+SCENARIO 2: CONDUCTING A POLL
+
+Step 1: Create Poll
+- Go to Polls
+- Enter question (e.g., "Which story should we perform next?")
+- Add options (Story 1, Story 2, Story 3)
+- Set expiry date
+- Click "Create"
+
+Step 2: Members Vote
+- Members see poll on Announcements page
+- Click their choice and vote
+
+Step 3: View Results
+- Go to Poll Results
+- See who voted for what
+- See voting timestamps
+- Export results
+
+Step 4: Make Decision
+- Based on results, decide next story
+- Announce the decision
+
+---
+
+SCENARIO 3: BULK IMPORT MEMBERS
+
+Step 1: Prepare Excel File
+- Create file with columns:
+  * Name
+  * Email
+  * Mobile
+  * MHT ID
+
+Step 2: Add Data
+- Add each member as a row
+- Make sure all required fields filled
+
+Step 3: Import
+- Go to Members
+- Click "Import"
+- Select Excel file
+- Map columns if needed
+- Click "Import"
+
+All members are added to system automatically.
+
+---
+
+SCENARIO 4: EXPORT ATTENDANCE FOR REPORT
+
+Step 1: Go to Attendance
+- Click "View All" (admin only)
+
+Step 2: Filter (Optional)
+- Select date range
+- Select specific member
+- Select attendance status
+
+Step 3: Export
+- Click "Export" button
+- Choose format (PDF or Excel)
+- File downloads
+
+Step 4: Share Report
+- Send exported file to stakeholders
+
+---
+
+SECTION 5: TROUBLESHOOTING & FAQs
+=================================================================
+
+COMMON ISSUES & SOLUTIONS:
+
+Q: I forgot the PostgreSQL password, what do I do?
+A: You need to reset it:
+   - Windows: Reinstall PostgreSQL and set new password
+   - Mac: Use pgAdmin application that came with PostgreSQL
+   - Linux: Use terminal command to reset
+
+Q: The app won't start, shows "port 5000 already in use"
+A: Another application is using port 5000
+   Solutions:
+   - Find and close the other application
+   - Restart your computer
+   - Use different port: npm run dev -- --port 3000
+
+Q: I see "Cannot find module" error
+A: Dependencies not installed
+   Solution: Run: npm install
+
+Q: Database connection error
+A: Check your .env.local file
+   - Verify DATABASE_URL is correct
+   - Verify PostgreSQL is running
+   - On Windows: Open Services > find PostgreSQL > Start it
+
+Q: "Member not found" when trying to add attendance
+A: Member record doesn't exist
+   Solution: Create member first in Members section
+
+Q: Excel import not working
+A: File format issue
+   Solution:
+   - Make sure file is .xlsx (not .xls)
+   - Check all required columns are present
+   - No special characters in data
+
+Q: Poll results not showing votes
+A: No one has voted yet
+   Solution: Wait for members to vote or create test votes
+
+Q: Can't login, says "Invalid credentials"
+A: Check entered values
+   - Email must be exact (case-insensitive but spelling matters)
+   - MHT ID must be exact
+   - Make sure member exists in system
+
+Q: How do I backup my data?
+A: Multiple ways:
+   1. Export members and attendance to Excel
+   2. Backup database file (if using file-based)
+   3. Use PostgreSQL backup command: pg_dump
+
+Q: Can I use this app without internet?
+A: Yes, it runs locally on your computer
+   - Only need internet for initial setup and downloads
+
+Q: How many members can the system handle?
+A: Theoretically unlimited
+   - Depends on your computer's resources
+   - Can handle 1000+ members without issues
+
+Q: How to add admin privileges to a member?
+A: Only current admin can do this
+   - Go to Members
+   - Find member
+   - Edit their role to "Admin"
+   - Click "Save"
+
+Q: Can I change the app theme/colors?
+A: Yes, but requires code editing
+   - Colors defined in: client/src/index.css
+   - Requires restarting app after changes
+
+Q: How to delete all data and start fresh?
+A: Database reset (carefully!)
+   1. In Terminal:
+      dropdb gnc_puppet
+      createdb gnc_puppet
+      npm run db:push
+   2. Run app: npm run dev
+   3. All data will be fresh/empty
+
+---
+
+SECTION 6: TEAM COLLABORATION TIPS
+=================================================================
+
+BEST PRACTICES FOR TEAM USE:
+
+1. REGULAR BACKUPS
+   - Export all data monthly
+   - Keep Excel backup copies
+   - Store in safe location
+
+2. CLEAR ROLES
+   - Assign specific admins
+   - Define who manages what
+   - Document responsibilities
+
+3. COMMUNICATION
+   - Use Announcements for important updates
+   - Pin important messages
+   - Regular team meetings
+
+4. DATA INTEGRITY
+   - Review attendance records regularly
+   - Verify poll results
+   - Check for data inconsistencies
+
+5. SECURITY
+   - Use strong SESSION_SECRET
+   - Don't share .env.local file
+   - Change admin password regularly (when feature added)
+   - Limit who has access to admin features
+
+6. UPDATES & CHANGES
+   - Test changes in development first
+   - Document any modifications
+   - Backup before major updates
+
+7. PERFORMANCE
+   - Archive old attendance records annually
+   - Delete expired polls and announcements
+   - Maintain clean member list
+
+---
+
+SECTION 7: ADVANCED USAGE & CUSTOMIZATION
+=================================================================
+
+For developers who want to modify the project:
+
+ADDING NEW FEATURES:
+
+1. Modify database schema: shared/schema.ts
+2. Update backend routes: server/routes.ts
+3. Update storage: server/storage.ts
+4. Add frontend page: client/src/pages/YourNewPage.tsx
+5. Register route: client/src/App.tsx
+6. Test thoroughly before using
+
+CHANGING DATABASE:
+
+Current: PostgreSQL local
+To change database provider:
+- Modify DATABASE_URL in .env.local
+- Update schema if needed
+- Ensure ORM compatibility
+
+CUSTOMIZING APPEARANCE:
+
+Colors and styling:
+- Main styles: client/src/index.css
+- Component styles: client/src/components/
+- Colors use CSS variables
+- Theme: Light and Dark mode support
+
+ADDING EMAILS:
+
+To send emails on events:
+- Configure SMTP service
+- Add email triggers in server/routes.ts
+- Use nodemailer library
+- Set EMAIL_PASSWORD in .env.local
+
+---
+
+SECTION 8: DEPLOYMENT & GOING LIVE
+=================================================================
+
+When ready to deploy to production:
+
+OPTION 1: RAILWAY.APP (Recommended, Free tier available)
+
+1. Push code to GitHub
+2. Go to: https://railway.app/
+3. Create account
+4. Link GitHub repository
+5. Set environment variables (DATABASE_URL, SESSION_SECRET)
+6. Deploy
+7. Get live URL
+
+OPTION 2: RENDER.COM
+
+1. Push code to GitHub
+2. Go to: https://render.com/
+3. Create account
+4. Create PostgreSQL database
+5. Deploy from GitHub
+6. Get live URL (e.g., gnc-puppet.onrender.com)
+
+OPTION 3: HEROKU (Paid)
+
+1. Sign up at: https://www.heroku.com/
+2. Install Heroku CLI
+3. Push code: git push heroku main
+4. Configure database
+5. Deploy
+
+Before deploying:
+- Test everything locally
+- Review .gitignore (ensure .env.local not included)
+- Create production .env file on hosting platform
+- Test in production environment
+
+After deploying:
+- Share live URL with team
+- Ensure backups enabled
+- Monitor for errors
+- Update documentation with live URL
+
+---
+
+SECTION 9: MAINTENANCE & KEEPING SYSTEM HEALTHY
+=================================================================
+
+DAILY:
+- Check for critical errors
+- Monitor database size
+- Verify backups
+
+WEEKLY:
+- Review pending reports
+- Check attendance accuracy
+- Test poll functionality
+
+MONTHLY:
+- Export complete data backup
+- Archive old records
+- Review and optimize queries
+- Update member information
+
+QUARTERLY:
+- Major database optimization
+- Review security settings
+- Plan updates/improvements
+- Team review and feedback
+
+ANNUALLY:
+- Complete system audit
+- Archive historical data
+- Plan feature additions
+- Update documentation
+
+---
+
+This guide covers everything you need to know to set up, share, and use
+the GNC Puppet Attendance Management System. For specific issues not
+covered here, refer to the technical documentation in the code comments.
+
+For more information, contact the development team.
+
+=================================================================
+CHAT SESSION 1: INITIAL SETUP & CORE FEATURES
+=================================================================
+
+CHAT EXCHANGE 1: Poll Response Issues
+User Issue: "Poll filled by member is not showing in poll results"
+
+Action Taken:
+1. Added getPollResponsesByPollId() method to storage layer
+2. Fixed poll response retrieval in /api/polls/active endpoint
+3. Fixed poll response retrieval in /api/polls/results endpoint
+4. Updated storage to return responses with member data
+
+Result: Poll responses now show correctly with member info and timestamps
+
+Code Changes:
+- server/storage.ts: Added getPollResponsesByPollId method
+- server/routes.ts: Updated both /api/polls/active and /api/polls/results
+- client/src/pages/PollResults.tsx: Added member name and timestamp display
+
+CHAT EXCHANGE 2: Member Names & Timestamps in Poll Results
+User Request: "Admin should also be able to see the name of the member who 
+filled the poll, and at what time"
+
+Action Taken:
+1. Modified getPollResponsesByPollId to include member details
+2. Updated PollResults component to display:
+   - Member name
+   - Timestamp of poll response
+   - Vote choice (badge)
+3. Ordered responses by creation time (newest first)
+
+Result: Admin can now see who voted and when in poll results page
+
+Code Changes:
+- server/storage.ts: getPollResponsesByPollId now returns member data
+- client/src/pages/PollResults.tsx: Added timestamp display with toLocaleString()
+
+CHAT EXCHANGE 3: Endpoint Verification
+User Request: "Check all the endpoints and routes, whether they are 
+correctly linked"
+
+Action Taken:
+Comprehensive verification performed across:
+- 43+ backend endpoints
+- 15+ frontend routes
+- API call mappings for each page
+
+Verification Results:
+✓ All authentication endpoints linked
+✓ All member management endpoints linked
+✓ All story/character endpoints linked
+✓ All show management endpoints linked
+✓ All notification endpoints linked (admin)
+✓ All poll endpoints linked (users and admin)
+✓ All attendance endpoints linked (both user and admin)
+✓ All practice links endpoints linked
+✓ All report endpoints linked (both user and admin)
+✓ All stats endpoints linked
+
+No broken or mismatched routes found.
+
+CHAT EXCHANGE 4: Local Development Setup
+User Request: "How to start this web app in my local pc instead of online?"
+
+Response Provided:
+Prerequisites:
+- Node.js (v16+)
+- PostgreSQL
+- Git
+
+Setup Steps:
+1. Clone repository: git clone <repo-url>
+2. Install dependencies: npm install
+3. Create .env.local with DATABASE_URL and SESSION_SECRET
+4. Create PostgreSQL database
+5. Run: npm run db:push (for migrations)
+6. Start: npm run dev
+
+Key Points:
+- App uses custom email/mobile + MHT ID login (no Replit OAuth needed)
+- Admin account auto-creates on first start
+- Both frontend and backend run on same port (5000)
+- Database syncs automatically on startup
+
+CHAT EXCHANGE 5: Remove Sample Data
+User Request: "Now remove all sample data except Admin user sample log in"
+
+Action Taken:
+Modified server/routes.ts seedSampleData function to:
+- Keep: Admin user creation (MHT001, admin@gnc.org)
+- Remove: Sample stories and characters
+- Remove: Sample notifications and polls
+
+Result: Only admin account seeds; clean database for new data
+
+CHAT EXCHANGE 6: Re-add Sample Stories
+User Request: "Re add Sample stories (Lumpy & Pooh, Sonu & Meow, etc.) 
+and their characters as it was"
+
+Action Taken:
+Re-added to seedSampleData function:
+1. Lumpy & Pooh (7 characters)
+2. Sonu & Meow (Aatali J Vat) (8 characters)
+3. Dukh Se Sukh Ki Aur (Shreck & Donkey) (3 characters)
+4. Dalo Tarwadi (3 characters)
+5. Jealousy Ki Remedy (6 characters)
+6. Mashkari Na Jokhamo (6 characters)
+
+Result: Sample stories restored with all exact character names
+
+=================================================================
+SAMPLE LOGIN CREDENTIALS (For Testing)
+=================================================================
+
+Admin Account:
+- Email: admin@gnc.org
+- Mobile: 9876543210
+- MHT ID: MHT001
+- Role: Admin
+
+=================================================================
+KEY IMPLEMENTATION DETAILS
+=================================================================
+
+AUTHENTICATION FLOW:
+1. Custom Login: email/mobile + MHT ID → memberId stored in session
+2. OAuth Login: Replit auth → userId stored in session
+3. Routes check: req.user.memberId (custom) → req.user.claims.sub (OAuth)
+4. Auto-user creation: Custom login creates User record with userId link
+
+POLL SYSTEM:
+- Normal Users: Vote on polls via /announcements page
+- Admin: View poll results with member names, timestamps, and statistics
+- Endpoints:
+  * GET /api/polls/active - get active polls with responses
+  * GET /api/polls/results - admin only, get all poll results
+  * POST /api/polls/:pollId/respond - submit vote
+  * POST /api/polls/export - export results as PDF/Excel/Image
+
+ATTENDANCE SYSTEM:
+- User Self-Attendance: /attendance/form → POST /api/attendance
+- Admin Recording: /attendance/admin-form → POST /api/attendance/admin
+- User Views Own: /attendance → GET /api/attendance/my
+- Admin Views All: /attendance/all → GET /api/attendance/all
+
+REPORT SYSTEM:
+- Users submit reports: /user-reports → POST /api/reports
+- Users view own reports: /user-reports → GET /api/reports
+- Admin views all reports: /reports → GET /api/reports
+- Admin stats: Reports page shows stats dashboard
+
+NAVIGATION:
+Admin Routes:
+- /members, /stories, /shows, /notifications, /practice-links, 
+  /polls/results, /reports, /attendance/all, /attendance/admin-form
+
+User Routes:
+- /, /attendance, /attendance/form, /announcements, /user-reports, /profile
+
+=================================================================
+DATABASE SCHEMA HIGHLIGHTS
+=================================================================
+
+Core Tables:
+- users: Replit OAuth users
+- members: GNC members (custom login)
+- stories: Puppet stories
+- characters: Story characters
+- attendance: Attendance records
+- shows: Performance shows
+- notifications: Announcements and notifications
+- polls: Poll questions
+- poll_responses: User poll responses
+- reports: User reports to admin
+- practice_links: Practice video links
+
+Relations:
+- users ↔ members (one-to-one, via userId)
+- stories ↔ characters (one-to-many)
+- members ↔ attendance (one-to-many)
+- members ↔ reports (one-to-many)
+- members ↔ poll_responses (one-to-many)
+- polls ↔ poll_responses (one-to-many)
+
+=================================================================
+SAMPLE DATA STRUCTURE
+=================================================================
+
+Stories with Characters:
+1. Lumpy & Pooh: Tiger, Lumpy, Pooh, Smarty, Jimmy, Mikey, Honey Bee
+2. Sonu & Meow (Aatali J Vat): Sonu, Meow, Aman, Karan, Mayadidi, Kudamji, Mithumiya, Patangiyu
+3. Dukh Se Sukh Ki Aur (Shreck & Donkey): Shrek, Donkey, Nimo
+4. Dalo Tarwadi: Dalo, Pasha Patel, Shethani
+5. Jealousy Ki Remedy: Mr. Trevor, Poly, Fiyona, Sporty, Flory, Teacher
+6. Mashkari Na Jokhamo: Dhruv, Parth, Mona, Pinki, Teacher, Principal
+
+=================================================================
+TECH STACK
+=================================================================
+
+Backend:
+- Express.js
+- TypeScript
+- Drizzle ORM
+- PostgreSQL
+- Zod validation
+- XLSX for Excel import/export
+- PDFKit for PDF generation
+- Express-session for sessions
+
+Frontend:
+- React
+- TypeScript
+- Wouter for routing
+- React Hook Form
+- Shadcn UI components
+- Tailwind CSS
+- TanStack React Query
+- Lucide icons
+
+=================================================================
+KEY API ENDPOINTS SUMMARY
+=================================================================
+
+Authentication:
+POST /api/auth/login - Custom login
+POST /api/auth/logout - Logout
+GET /api/auth/user - Get current user
+
+Members:
+GET /api/members - Get all members (admin)
+POST /api/members - Create member (admin)
+GET /api/members/me - Get current user profile
+PATCH /api/members/me - Update own profile
+PATCH /api/members/:id - Update member (admin)
+DELETE /api/members/:id - Delete member (admin)
+GET /api/members/export - Export members as Excel
+POST /api/members/import - Import members from Excel
+
+Stories & Characters:
+GET /api/stories - Get all stories
+GET /api/stories/with-characters - Get stories with characters
+POST /api/stories - Create story (admin)
+PATCH /api/stories/:id - Update story (admin)
+DELETE /api/stories/:id - Delete story (admin)
+GET /api/stories/:storyId/characters - Get story characters
+POST /api/stories/:storyId/characters - Add character (admin)
+DELETE /api/characters/:id - Delete character (admin)
+
+Shows:
+GET /api/shows - Get all shows
+GET /api/shows/recent - Get recent shows
+POST /api/shows - Create show (admin)
+PATCH /api/shows/:id - Update show (admin)
+DELETE /api/shows/:id - Delete show (admin)
+
+Notifications:
+GET /api/notifications - Get all notifications (admin)
+GET /api/notifications/active - Get active notifications (user)
+POST /api/notifications - Create notification (admin)
+DELETE /api/notifications/:id - Delete notification (admin)
+
+Polls:
+GET /api/polls/active - Get active polls with responses (user)
+GET /api/polls/results - Get all poll results with member data (admin)
+POST /api/polls - Create poll (admin)
+POST /api/polls/:pollId/respond - Submit poll response (user)
+POST /api/polls/export - Export poll results (admin)
+
+Attendance:
+GET /api/attendance/my - Get own attendance (user)
+GET /api/attendance/all - Get all attendance (admin)
+POST /api/attendance - Submit own attendance (user)
+POST /api/attendance/admin - Record attendance for others (admin)
+
+Reports:
+GET /api/reports - Get all reports or own reports
+POST /api/reports - Submit report (user)
+GET /api/reports/stats - Get report statistics (admin)
+PATCH /api/reports/:id/read - Mark report as read (admin)
+POST /api/reports/export - Export reports (admin)
+
+Practice Links:
+GET /api/practice-links - Get all practice links
+POST /api/practice-links - Create practice link (admin)
+PATCH /api/practice-links/:id - Update practice link (admin)
+DELETE /api/practice-links/:id - Delete practice link (admin)
+
+Stats:
+GET /api/stats - Get dashboard statistics
+
+=================================================================
+IMPORTANT NOTES FOR FUTURE DEVELOPMENT
+=================================================================
+
+1. CUSTOM LOGIN HANDLING:
+   - Always check req.user.memberId first, then fall back to userId lookup
+   - memberId is used for custom (email/mobile) login
+   - userId is used for Replit OAuth login
+
+2. TIME FIELD HANDLING:
+   - Empty strings for time fields must be converted to null
+   - Database TIME type fields require null, not empty strings
+
+3. POLL RESPONSE QUERIES:
+   - Always use getPollResponsesByPollId for getting responses
+   - Include member data in response for admin display
+
+4. ROLE-BASED ACCESS:
+   - Check currentMember?.isAdmin for admin-only operations
+   - Normal users should only see their own data in some sections
+
+5. DATA EXPORTS:
+   - Polls can export as PDF/Excel/Image
+   - Reports can export as PDF/Excel
+   - Members can export/import as Excel
+
+6. RESPONSIVE DESIGN:
+   - All pages follow Material Design 3
+   - Mobile-first approach with Tailwind CSS
+   - Use shadcn UI components consistently
+
+7. FORM VALIDATION:
+   - Always use Zod schemas from shared/schema.ts
+   - Use react-hook-form with zodResolver
+   - Validate on both frontend and backend
+
+8. DATA FETCHING:
+   - Use TanStack React Query for all data fetching
+   - queryKey format: ['/api/endpoint', dynamicId]
+   - Use apiRequest for mutations (POST/PATCH/DELETE)
+   - Always invalidate cache after mutations
+
+=================================================================
+SESSION LOG END
+=================================================================
+
+Last Updated: November 28, 2025
+Project Status: Core features implemented and tested
+Next Steps: Deploy, user testing, gather feedback
