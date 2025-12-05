@@ -429,7 +429,7 @@ export default function Dashboard() {
               <ClipboardCheck className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
               <p className="text-muted-foreground">No attendance records yet</p>
               <Button variant="outline" size="sm" className="mt-3" asChild>
-                <Link href="/attendance/new">Mark Your First Attendance</Link>
+                <Link href="/attendance/form">Mark Your First Attendance</Link>
               </Button>
             </div>
           )}
